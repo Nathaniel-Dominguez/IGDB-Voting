@@ -4,9 +4,16 @@ import votingService from '../services/voting';
 import igdbService from '../services/igdb';
 
 const router = Router();
+const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
 
 function getGuildId(req: Request): string | null {
   return req.body?.guildId ?? (req.query.guildId as string) ?? null;
+}
+
+function isAdmin(req: Request): boolean {
+  if (!ADMIN_SECRET) return true;
+  const header = req.headers['x-admin-secret'] || req.body?.adminSecret;
+  return header === ADMIN_SECRET;
 }
 
 // Submit a nomination vote (Phase 1 only)
@@ -134,9 +141,12 @@ router.get('/stats', (req: Request, res: Response) => {
   }
 });
 
-// Clear all votes for a guild (admin - in production add auth)
+// Clear all votes for a guild (admin only)
 router.delete('/clear', (req: Request, res: Response) => {
   try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const guildId = getGuildId(req);
     if (!guildId) {
       return res.status(400).json({ error: 'Missing required query or body: guildId' });

@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import igdbService from '../services/igdb';
-import votingService from '../services/voting';
 
 const router = Router();
 
@@ -11,14 +10,6 @@ router.get('/category/:categoryId', async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 50;
 
     const games = await igdbService.getGamesByCategory(categoryId, limit);
-    
-    // Cache game data
-    games.forEach(game => {
-      if (game.id) {
-        votingService.setGameData(game.id, game);
-      }
-    });
-
     res.json(games);
   } catch (error: any) {
     console.error('Error fetching games by category:', error);
@@ -37,14 +28,6 @@ router.get('/search', async (req: Request, res: Response) => {
     }
 
     const games = await igdbService.searchGames(searchTerm, limit);
-    
-    // Cache game data
-    games.forEach(game => {
-      if (game.id) {
-        votingService.setGameData(game.id, game);
-      }
-    });
-
     res.json(games);
   } catch (error: any) {
     console.error('Error searching games:', error);
@@ -57,11 +40,6 @@ router.get('/:gameId', async (req: Request, res: Response) => {
   try {
     const gameId = parseInt(req.params.gameId);
     const game = await igdbService.getGameById(gameId);
-    
-    if (game) {
-      votingService.setGameData(gameId, game);
-    }
-
     res.json(game);
   } catch (error: any) {
     console.error('Error fetching game:', error);
