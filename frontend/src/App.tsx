@@ -1,17 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import './App.css';
 import VotingTab from './components/VotingTab';
 import TopGames from './components/TopGames';
 import Stats from './components/Stats';
 import LadderTab from './components/LadderTab';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_APP_API_URL || 'http://localhost:3001/api';
 
-// Single server per deployment: set REACT_APP_GUILD_ID to your Discord server ID.
+// Single server per deployment: set VITE_APP_GUILD_ID to your Discord server ID.
 // Optional: ?guildId= in URL for local dev or bot-shared links.
 function useGuildId(): string | null {
   return useMemo(() => {
-    const env = process.env.REACT_APP_GUILD_ID;
+    const env = import.meta.env.VITE_APP_GUILD_ID;
     if (env) return env;
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -40,7 +40,7 @@ function App() {
         <p>
           {guildId
             ? 'Server ladder: nominate games, then vote in the bracket.'
-            : 'Not linked to a server. Set REACT_APP_GUILD_ID to this server’s Discord ID when deploying.'}
+            : 'Not linked to a server. Set VITE_APP_GUILD_ID to this server’s Discord ID when deploying.'}
         </p>
       </header>
 

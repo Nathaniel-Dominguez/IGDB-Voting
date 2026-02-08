@@ -22,7 +22,7 @@ const TopGames: React.FC<TopGamesProps> = ({ apiUrl, guildId }) => {
 
   const fetchTopGames = async () => {
     if (!guildId) {
-      setError('Server not configured. Set REACT_APP_GUILD_ID for this deployment.');
+      setError('Server not configured. Set VITE_APP_GUILD_ID for this deployment.');
       setLoading(false);
       return;
     }

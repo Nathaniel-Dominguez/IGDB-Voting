@@ -174,12 +174,12 @@ API_BASE_URL=http://localhost:3001/api
 Create `frontend/.env` (optional, defaults to localhost:3001):
 
 ```env
-REACT_APP_API_URL=http://localhost:3001/api
+VITE_APP_API_URL=http://localhost:3001/api
 # Single server per deployment: set to your Discord server (guild) ID so the web app uses that server's ladder.
-REACT_APP_GUILD_ID=your_discord_server_id
+VITE_APP_GUILD_ID=your_discord_server_id
 ```
 
-For local dev you can omit `REACT_APP_GUILD_ID` and pass `?guildId=...` in the URL instead.
+For local dev you can omit `VITE_APP_GUILD_ID` and pass `?guildId=...` in the URL instead.
 
 ### 4. Start the Application
 
@@ -324,7 +324,7 @@ Common category IDs for the `/games` command:
 
 2. Deploy the `build` folder to your hosting platform
 
-3. Update `REACT_APP_API_URL` to point to your deployed backend
+3. Update `VITE_APP_API_URL` to point to your deployed backend
 
 **Recommended Platforms**: Vercel, Netlify, GitHub Pages
 
@@ -384,7 +384,7 @@ Common category IDs for the `/games` command:
 - **Persistence**: Votes and ladders are stored in SQLite (default: `backend/data/voting.db`). Set `DATABASE_PATH` in the backend to override. Data survives restarts.
 - **Ladder flow**: Per Discord server: (1) **Nominations** – users nominate games with `/vote` or the web app; (2) admin runs **close-nominations** to seed a bracket from the top N; (3) **Bracket** – users vote on head-to-head matchups (Discord buttons or web Ladder tab); (4) admin runs **close-round** until one champion remains.
 - **User voting**: One nomination per user per game per guild; one vote per user per matchup in the bracket.
-- **Single-server web app**: Set `REACT_APP_GUILD_ID` to your Discord server ID so the web app is tied to that server’s ladder.
+- **Single-server web app**: Set `VITE_APP_GUILD_ID` to your Discord server ID so the web app is tied to that server’s ladder.
 - **Environment Variables**: Never commit `.env` files to version control. Always use `.env.example` files as templates.
 
 ## 🔒 Security

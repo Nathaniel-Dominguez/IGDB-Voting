@@ -22,7 +22,7 @@ const VotingTab: React.FC<VotingTabProps> = ({ apiUrl, userId, guildId }) => {
   if (!guildId) {
     return (
       <div className="voting-tab-no-guild">
-        <p>This app is not linked to a server. Set <code>REACT_APP_GUILD_ID</code> to your Discord server ID when deploying for this server.</p>
+        <p>This app is not linked to a server. Set <code>VITE_APP_GUILD_ID</code> to your Discord server ID when deploying for this server.</p>
       </div>
     );
   }

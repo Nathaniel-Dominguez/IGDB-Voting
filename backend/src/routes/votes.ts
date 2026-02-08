@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Vote } from '../models/Vote';
-import votingService from '../services/voting';
+import * as votingService from '../services/voting';
 import igdbService from '../services/igdb';
 
 const router = Router();
