@@ -1,0 +1,27 @@
+{
+  "name": "igdb-voting-app",
+  "version": "1.0.0",
+  "description": "IGDB Game Voting App - React web app and Discord bot",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm start",
+    "dev:bot": "cd discord-bot && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:bot": "cd discord-bot && npm run build",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install && cd ../discord-bot && npm install"
+  },
+  "keywords": [
+    "igdb",
+    "voting",
+    "games",
+    "discord-bot",
+    "react"
+  ],
+  "author": "",
+  "license": "ISC"
+}
