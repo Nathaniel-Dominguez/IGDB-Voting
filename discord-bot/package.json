@@ -16,6 +16,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "overrides": {
+    "undici": ">=6.23.0"
+  },
   "dependencies": {
     "axios": "^1.7.9",
     "discord.js": "^14.16.5",
