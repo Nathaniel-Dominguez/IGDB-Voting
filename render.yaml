@@ -1,7 +1,10 @@
+# Render Blueprint – see https://render.com/docs/blueprint-spec
+# Validate: render blueprints validate render.yaml (Render CLI v2.7.0+)
 services:
   - type: web
     name: igdb-voting-backend
     runtime: node
+    plan: free
     rootDir: backend
     buildCommand: npm install && npm run build
     startCommand: npm start
