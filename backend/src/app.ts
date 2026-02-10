@@ -8,9 +8,22 @@ import igdbRouter from './routes/igdb';
 
 const app = express();
 
-// Middleware
+// Middleware: allow multiple origins so local dev (any port) and deployed frontends work
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // same-origin or non-browser
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    if (origin.endsWith('.github.io')) return cb(null, true); // GitHub Pages
+    cb(null, false);
+  },
   credentials: true,
 }));
 app.use(express.json());
