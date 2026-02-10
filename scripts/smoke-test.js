@@ -9,6 +9,7 @@ const GUILD_ID = process.env.GUILD_ID || 'smoke-test-guild';
 
 const checks = [
   { name: 'health', url: `${BASE_URL}/health`, expect: (body) => /"status"\s*:\s*"ok"/.test(body) },
+  { name: 'guilds', url: `${BASE_URL}/api/guilds`, expect: (body) => body.includes('"guilds"') },
   { name: 'ladder', url: `${BASE_URL}/api/guilds/${GUILD_ID}/ladder`, expect: (body) => body.includes('"phase"') },
   { name: 'votes/top', url: `${BASE_URL}/api/votes/top?guildId=${GUILD_ID}`, expect: (body) => body.includes('"games"') },
   { name: 'votes/stats', url: `${BASE_URL}/api/votes/stats?guildId=${GUILD_ID}`, expect: (body) => body.includes('"totalVotes"') },

@@ -1,0 +1,139 @@
+.Landing {
+  min-height: 100vh;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.Landing-header {
+  text-align: center;
+  color: white;
+  margin-bottom: 40px;
+}
+
+.Landing-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.Landing-message {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.Landing-servers {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.Landing-servers-title {
+  color: white;
+  font-size: 1.1rem;
+  margin: 0 0 12px 0;
+}
+
+.Landing-servers-error {
+  color: rgba(255, 150, 150, 0.95);
+  font-size: 0.9rem;
+  margin: 0 0 12px 0;
+}
+
+.Landing-servers-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.Landing-servers-list li {
+  margin-bottom: 8px;
+}
+
+.Landing-server-link {
+  display: block;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.Landing-server-link:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.Landing-form {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.Landing-hint {
+  color: white;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+}
+
+.Landing-hint code {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.Landing-guild-form label {
+  display: block;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.Landing-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.Landing-input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.Landing-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.Landing-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: white;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.Landing-button:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
+}

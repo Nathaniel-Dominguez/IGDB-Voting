@@ -5,6 +5,7 @@ import gamesRouter from './routes/games';
 import votesRouter from './routes/votes';
 import ladderRouter from './routes/ladder';
 import igdbRouter from './routes/igdb';
+import guildsRouter from './routes/guilds';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use(express.json());
 app.use('/api/games', gamesRouter);
 app.use('/api/votes', votesRouter);
 app.use('/api', ladderRouter);
+app.use('/api', guildsRouter);
 app.use('/api/igdb', igdbRouter);
 
 // Health check

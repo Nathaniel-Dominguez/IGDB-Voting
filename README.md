@@ -180,11 +180,11 @@ Create `frontend/.env` (optional, defaults to localhost:3001):
 
 ```env
 VITE_APP_API_URL=http://localhost:3001/api
-# Single server per deployment: set to your Discord server (guild) ID so the web app uses that server's ladder.
-VITE_APP_GUILD_ID=your_discord_server_id
+# Optional: default guild when none in URL. For multi-guild deployments, omit this; guild comes from URL (/app?guildId=...) or landing page server picker.
+# VITE_APP_GUILD_ID=your_discord_server_id
 ```
 
-For local dev you can omit `VITE_APP_GUILD_ID` and pass `?guildId=...` in the URL instead.
+For local dev you can omit `VITE_APP_GUILD_ID` and use the landing page, `/ladder link` from Discord, or `?guildId=...` in the URL.
 
 ### 4. Start the Application
 
@@ -216,13 +216,12 @@ Bot will connect to Discord
 ### Web Application
 
 1. Open `http://localhost:3000` in your browser
-2. **Vote Tab**:
-   - Search for games using the search bar
-   - Click on a game to select it
-   - Choose a category from the dropdown
-   - Click "Submit Vote"
-3. **Top Games Tab**: View the current top 100 games ranked by votes
-4. **Statistics Tab**: View comprehensive voting statistics
+2. **Landing page** (`/`): If no server is selected, you see instructions to get the link from your Discord server. Use `/ladder link` in Discord to get your server's voting URL, or select a server from the list (if any) or enter a Discord server ID.
+3. **Voting app** (`/app`): Once you have a server context (from URL or landing):
+   - **Vote Tab**: Search for games, select one, choose a category, click "Submit Vote"
+   - **Top Games Tab**: View the current top 100 games ranked by votes
+   - **Statistics Tab**: View comprehensive voting statistics
+   - **Ladder Tab**: View nominations or bracket and vote on matchups (when a server is selected)
 
 ### Discord Bot Commands
 
@@ -235,9 +234,19 @@ All vote/top/stats commands are scoped to the server where you run them.
 - `/stats` - View voting statistics for this server
 - `/games category:<id> [limit:<number>]` - Get games by IGDB category ID
 - `/ladder show` - Show current ladder (nominations list or bracket matchups with vote buttons)
+- `/ladder link` - Get the web app URL for this server's voting page (share with users)
 - `/ladder start [size:8|16|32]` - Start a new ladder (admin)
 - `/ladder close-nominations` - Close nominations and seed bracket (admin)
 - `/ladder close-round` - Close current bracket round and advance (admin)
+
+### Initial testing flow
+
+1. Invite the bot to your Discord server (OAuth2 URL Generator).
+2. In Discord, run `/ladder start` (admin) to create a ladder.
+3. Have users run `/vote game:<name> category:<category>` to nominate games.
+4. Run `/ladder link` to get the web app URL for this server; share it with users.
+5. Open the web app link in a browser and verify Vote, Top Games, Stats, and Ladder tabs.
+6. When ready, admin runs `/ladder close-nominations` to seed the bracket, then `/ladder close-round` to advance rounds until a champion is chosen.
 
 ## 🔌 API Endpoints
 
@@ -267,6 +276,10 @@ All vote endpoints require `guildId` (query or body) so each Discord server has 
 - `GET /api/votes/game/:gameId?guildId=<id>` - Get votes for a game in a guild
 - `GET /api/votes/stats?guildId=<id>` - Get voting statistics for a guild
 - `DELETE /api/votes/clear?guildId=<id>` - Clear nomination votes for a guild (admin)
+
+### Guilds
+
+- `GET /api/guilds` - List all guilds (servers) that have been used (for landing page server picker)
 
 ### Ladder (per-guild)
 
@@ -334,7 +347,7 @@ If `better-sqlite3` native bindings fail to build (e.g. on Windows without build
    cd frontend
    npm run build
    ```
-   Set `VITE_APP_API_URL` at **build time** to your deployed backend API URL (e.g. `https://your-backend.up.railway.app/api`). Optionally set `VITE_APP_GUILD_ID` to tie the web app to one Discord server.
+   Set `VITE_APP_API_URL` at **build time** to your deployed backend API URL (e.g. `https://your-backend.up.railway.app/api`). For multi-guild deployments, omit `VITE_APP_GUILD_ID`; guild context comes from the URL or landing page server picker.
 
 2. Deploy the `frontend/dist` folder to your hosting platform.
 
@@ -345,7 +358,7 @@ If `better-sqlite3` native bindings fail to build (e.g. on Windows without build
 1. In the repo **Settings → Pages**, set **Source** to **GitHub Actions**.
 2. Add **repository variables** (Settings → Secrets and variables → Actions → Variables):
    - `VITE_APP_API_URL`: your deployed backend URL (e.g. `https://your-backend.up.railway.app/api`)
-   - `VITE_APP_GUILD_ID`: (optional) your Discord server ID for the web app
+   - `VITE_APP_GUILD_ID`: (optional) default Discord server ID when none in URL
 3. Push to `main` or run the workflow **Deploy frontend to GitHub Pages** manually. The workflow builds the frontend and deploys it to GitHub Pages.
 4. **URLs**:
    - **Frontend (Pages)**: `https://<your-username>.github.io/<repo-name>/` (or your custom domain if configured).
@@ -363,6 +376,7 @@ Use this to test without Render’s worker. Your machine must stay on and the bo
    - `DISCORD_TOKEN` – your Discord bot token ([Discord Developer Portal](https://discord.com/developers/applications) → your app → Bot → Reset Token).
    - `DISCORD_CLIENT_ID` – your Discord application Client ID (same app → OAuth2 → Client ID).
    - `API_BASE_URL` – your **deployed** backend API base URL, e.g. `https://igdb-voting-backend.onrender.com/api` (no trailing slash). This makes the bot talk to your live backend and share votes with the web app.
+   - `FRONTEND_URL` – (optional) frontend URL for `/ladder link` (e.g. `https://your-app.onrender.com`). Defaults to `http://localhost:3000`.
    - `ADMIN_SECRET` – (optional) set only if your backend has `ADMIN_SECRET`; must match for admin slash commands.
 
 2. **Install and run** (from repo root or from `discord-bot/`):
@@ -476,7 +490,7 @@ npm run test:frontend
 - **Persistence**: Votes and ladders are stored in SQLite (default: `backend/data/voting.db`). Set `DATABASE_PATH` in the backend to override. Data survives restarts. If `better-sqlite3` native bindings are missing (e.g. Windows without build tools), the backend falls back to an in-memory mock DB automatically, or set `USE_MOCK_DB=1` to force it; no data is persisted in mock mode.
 - **Ladder flow**: Per Discord server: (1) **Nominations** – users nominate games with `/vote` or the web app; (2) admin runs **close-nominations** to seed a bracket from the top N; (3) **Bracket** – users vote on head-to-head matchups (Discord buttons or web Ladder tab); (4) admin runs **close-round** until one champion remains.
 - **User voting**: One nomination per user per game per guild; one vote per user per matchup in the bracket.
-- **Single-server web app**: Set `VITE_APP_GUILD_ID` to your Discord server ID so the web app is tied to that server’s ladder.
+- **Multi-guild support**: One deployment serves multiple Discord servers. Guild context comes from the URL (`/app?guildId=...`), the landing page server picker, or `/ladder link` in Discord. Optionally set `VITE_APP_GUILD_ID` for a default server’s ladder.
 - **Environment Variables**: Never commit `.env` files to version control. Always use `.env.example` files as templates.
 
 ## 🔒 Security

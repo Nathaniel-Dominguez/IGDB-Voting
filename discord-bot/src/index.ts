@@ -16,6 +16,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001/api';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 interface Game {
   id: number;
@@ -128,7 +129,8 @@ const commands = [
         )
     )
     .addSubcommand(sc => sc.setName('close-nominations').setDescription('Close nominations and seed bracket (admin)'))
-    .addSubcommand(sc => sc.setName('close-round').setDescription('Close current bracket round (admin)')),
+    .addSubcommand(sc => sc.setName('close-round').setDescription('Close current bracket round (admin)'))
+    .addSubcommand(sc => sc.setName('link').setDescription('Get the web app link for this server\'s voting page')),
 ].map(command => command.toJSON());
 
 async function registerCommands() {
@@ -396,6 +398,18 @@ client.on('interactionCreate', async interaction => {
       const adminSecret = process.env.ADMIN_SECRET;
       const isAdmin = !adminSecret || (interaction.memberPermissions?.has?.('Administrator') ?? false);
 
+      if (sub === 'link') {
+        if (!guildId) {
+          await interaction.editReply({ content: '❌ This command must be used in a server (not DMs).' });
+          return;
+        }
+        const appUrl = `${FRONTEND_URL.replace(/\/$/, '')}/app?guildId=${guildId}&tab=vote`;
+        await interaction.editReply({
+          content: `Vote here: ${appUrl}`,
+        });
+        return;
+      }
+
       if (sub === 'start') {
         if (!isAdmin) {
           await interaction.editReply({ content: '❌ Admin only.' });
@@ -496,7 +510,7 @@ client.on('interactionCreate', async interaction => {
             if (data.constraintsDisplay) {
               embed.addFields({ name: 'Restrictions', value: data.constraintsDisplay, inline: false });
             }
-            embed.setFooter({ text: `Top ${data.bracketSize} will advance to bracket. Admin: /ladder close-nominations` });
+            embed.setFooter({ text: `Top ${data.bracketSize} will advance to bracket. Admin: /ladder close-nominations. Use /ladder link for the web app.` });
             await interaction.editReply({ embeds: [embed] });
             return;
           }
@@ -526,9 +540,9 @@ client.on('interactionCreate', async interaction => {
               });
             }
             if (open.length > 5) {
-              embed.setFooter({ text: `Showing 5 of ${open.length} matchups. Vote on the buttons above.` });
+              embed.setFooter({ text: `Showing 5 of ${open.length} matchups. Vote on the buttons above. Use /ladder link for the web app.` });
             } else {
-              embed.setFooter({ text: 'Click a button to vote for that game.' });
+              embed.setFooter({ text: 'Click a button to vote for that game. Use /ladder link for the web app.' });
             }
             await interaction.editReply({ embeds: [embed], components: rows });
             return;
