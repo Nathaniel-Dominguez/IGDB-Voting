@@ -297,6 +297,8 @@ Common category IDs for the `/games` command:
 
 ## 🚢 Deployment
 
+Deployment is split: **frontend** (static site) and **backend** (Node + SQLite). The frontend calls the backend using `VITE_APP_API_URL`. GitHub Pages can host only the frontend; the backend must run on a Node host (e.g. Railway, Render).
+
 ### Backend Deployment
 
 1. Build the TypeScript code:
@@ -305,28 +307,44 @@ Common category IDs for the `/games` command:
    npm run build
    ```
 
-2. Set environment variables on your hosting platform
+2. Set environment variables on your hosting platform:
+   - **Required**: `IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET`, `PORT` (if not 3001)
+   - **CORS**: `FRONTEND_URL` — origin of your frontend (e.g. `https://your-username.github.io` or your custom domain)
+   - **Database**: `DATABASE_PATH` (optional; default `./data/voting.db`). Ensure the path is writable (e.g. use a persistent volume on Railway/Render).
+   - **Admin**: `ADMIN_SECRET` (optional; for protected ladder/vote-clear endpoints)
 
 3. Start the server:
    ```bash
    npm start
    ```
 
-**Recommended Platforms**: Railway, Render, Heroku, DigitalOcean, AWS EC2
+**Recommended Platforms**: Railway, Render, Fly.io, Heroku, DigitalOcean, AWS EC2
+
+If `better-sqlite3` native bindings fail to build (e.g. on Windows without build tools), you can run the backend with **mock DB** (no persistence): set `USE_MOCK_DB=1`. Votes and ladder data will be in-memory only. See [backend/.env.example](backend/.env.example).
 
 ### Frontend Deployment
 
-1. Build the React app:
+1. Build the React app (output is `frontend/dist/`):
    ```bash
    cd frontend
    npm run build
    ```
+   Set `VITE_APP_API_URL` at **build time** to your deployed backend API URL (e.g. `https://your-backend.up.railway.app/api`). Optionally set `VITE_APP_GUILD_ID` to tie the web app to one Discord server.
 
-2. Deploy the `build` folder to your hosting platform
-
-3. Update `VITE_APP_API_URL` to point to your deployed backend
+2. Deploy the `frontend/dist` folder to your hosting platform.
 
 **Recommended Platforms**: Vercel, Netlify, GitHub Pages
+
+### GitHub Pages (frontend)
+
+1. In the repo **Settings → Pages**, set **Source** to **GitHub Actions**.
+2. Add **repository variables** (Settings → Secrets and variables → Actions → Variables):
+   - `VITE_APP_API_URL`: your deployed backend URL (e.g. `https://your-backend.up.railway.app/api`)
+   - `VITE_APP_GUILD_ID`: (optional) your Discord server ID for the web app
+3. Push to `main` or run the workflow **Deploy frontend to GitHub Pages** manually. The workflow builds the frontend and deploys it to GitHub Pages.
+4. **URLs**:
+   - **Frontend (Pages)**: `https://<your-username>.github.io/<repo-name>/` (or your custom domain if configured).
+   - **Backend (API)**: whatever you set as `VITE_APP_API_URL` (e.g. Railway or Render URL).
 
 ### Discord Bot Deployment
 
@@ -381,7 +399,7 @@ Common category IDs for the `/games` command:
 
 ## ⚠️ Important Notes
 
-- **Persistence**: Votes and ladders are stored in SQLite (default: `backend/data/voting.db`). Set `DATABASE_PATH` in the backend to override. Data survives restarts.
+- **Persistence**: Votes and ladders are stored in SQLite (default: `backend/data/voting.db`). Set `DATABASE_PATH` in the backend to override. Data survives restarts. If `better-sqlite3` native bindings are missing (e.g. Windows without build tools), the backend falls back to an in-memory mock DB automatically, or set `USE_MOCK_DB=1` to force it; no data is persisted in mock mode.
 - **Ladder flow**: Per Discord server: (1) **Nominations** – users nominate games with `/vote` or the web app; (2) admin runs **close-nominations** to seed a bracket from the top N; (3) **Bracket** – users vote on head-to-head matchups (Discord buttons or web Ladder tab); (4) admin runs **close-round** until one champion remains.
 - **User voting**: One nomination per user per game per guild; one vote per user per matchup in the bracket.
 - **Single-server web app**: Set `VITE_APP_GUILD_ID` to your Discord server ID so the web app is tied to that server’s ladder.

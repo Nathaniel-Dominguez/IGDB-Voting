@@ -1,0 +1,57 @@
+# Build and deploy the React frontend to GitHub Pages.
+# In repo Settings → Pages, set Source to "GitHub Actions" (then run this workflow).
+# Set repository variables: VITE_APP_API_URL (e.g. https://your-backend.up.railway.app/api), optionally VITE_APP_GUILD_ID.
+name: Deploy frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Build frontend
+        env:
+          VITE_APP_API_URL: ${{ vars.VITE_APP_API_URL || 'http://localhost:3001/api' }}
+          VITE_APP_GUILD_ID: ${{ vars.VITE_APP_GUILD_ID }}
+        run: cd frontend && npm run build
+
+      - name: Upload artifact for Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
