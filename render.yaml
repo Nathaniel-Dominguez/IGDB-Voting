@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: igdb-voting-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - backend/**

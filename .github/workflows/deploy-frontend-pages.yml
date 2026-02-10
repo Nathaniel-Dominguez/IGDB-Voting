@@ -38,6 +38,7 @@ jobs:
         env:
           VITE_APP_API_URL: ${{ vars.VITE_APP_API_URL || 'http://localhost:3001/api' }}
           VITE_APP_GUILD_ID: ${{ vars.VITE_APP_GUILD_ID }}
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
         run: cd frontend && npm run build
 
       - name: Upload artifact for Pages
