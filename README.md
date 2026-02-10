@@ -355,6 +355,29 @@ If `better-sqlite3` native bindings fail to build (e.g. on Windows without build
 
 The bot is a **long-running process** (no HTTP server). It needs to stay online to receive Discord gateway events.
 
+#### Run the bot from your machine (e.g. against deployed backend)
+
+Use this to test without Render’s worker. Your machine must stay on and the bot process running for Discord commands to work.
+
+1. **Create `discord-bot/.env`** (copy from `discord-bot/.env.example`):
+   - `DISCORD_TOKEN` – your Discord bot token ([Discord Developer Portal](https://discord.com/developers/applications) → your app → Bot → Reset Token).
+   - `DISCORD_CLIENT_ID` – your Discord application Client ID (same app → OAuth2 → Client ID).
+   - `API_BASE_URL` – your **deployed** backend API base URL, e.g. `https://igdb-voting-backend.onrender.com/api` (no trailing slash). This makes the bot talk to your live backend and share votes with the web app.
+   - `ADMIN_SECRET` – (optional) set only if your backend has `ADMIN_SECRET`; must match for admin slash commands.
+
+2. **Install and run** (from repo root or from `discord-bot/`):
+   ```bash
+   cd discord-bot
+   npm install
+   npm run build
+   npm start
+   ```
+   Or for development with hot reload: `npm run dev`.
+
+3. **Invite the bot** to your Discord server: Discord Developer Portal → your app → OAuth2 → URL Generator → scopes `bot` and `applications.commands`, bot permissions (e.g. Send Messages, Use Slash Commands) → open the generated URL and add the bot to a server.
+
+4. Keep the terminal (or process) running; closing it stops the bot.
+
 #### Option A: Render (same repo as backend)
 
 If you use the repo’s **Render Blueprint** (`render.yaml`), the Discord bot is defined as a **background worker**. After linking the repo to Render:
@@ -368,6 +391,11 @@ If you use the repo’s **Render Blueprint** (`render.yaml`), the Discord bot is
 3. Deploy; the worker will build (`npm install && npm run build`) and run `npm start`.
 
 **Note:** Background workers on Render do not support the free plan; use at least **Starter**. The bot only redeploys when files under `discord-bot/` change (build filter in `render.yaml`).
+
+**If you get "Sync Error: id is empty"** when syncing the Blueprint, Render’s sync can fail when the Blueprint was created with only one service (e.g. backend) and you later add another (the worker). Try one of these:
+
+- **Workaround 1 – Create the worker manually:** In the Render Dashboard go to **New → Background Worker**. Connect the same repo, set **Root Directory** to `discord-bot`, **Build Command** to `npm install && npm run build`, **Start Command** to `npm start`, and set the env vars listed above. You can leave `render.yaml` as-is (the backend stays managed by the Blueprint; the worker is standalone).
+- **Workaround 2 – New Blueprint with both services:** Create a **new** Blueprint (New → Blueprint → connect the same repo, same branch). When Render shows that the Blueprint matches existing resources, choose **Create New Resources** so it creates a new backend + worker pair. Then retire or delete the old backend if you were using one.
 
 #### Option B: Other platforms
 
