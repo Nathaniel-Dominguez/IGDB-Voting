@@ -12,3 +12,15 @@ services:
     buildFilter:
       paths:
         - backend/**
+
+  # Discord bot – long-running process, no HTTP. Set env vars in Render Dashboard.
+  - type: worker
+    name: igdb-voting-discord-bot
+    runtime: node
+    plan: starter
+    rootDir: discord-bot
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    buildFilter:
+      paths:
+        - discord-bot/**

@@ -353,20 +353,36 @@ If `better-sqlite3` native bindings fail to build (e.g. on Windows without build
 
 ### Discord Bot Deployment
 
+The bot is a **long-running process** (no HTTP server). It needs to stay online to receive Discord gateway events.
+
+#### Option A: Render (same repo as backend)
+
+If you use the repo’s **Render Blueprint** (`render.yaml`), the Discord bot is defined as a **background worker**. After linking the repo to Render:
+
+1. **Sync the Blueprint** so the `igdb-voting-discord-bot` worker service is created.
+2. In the Render Dashboard, open **igdb-voting-discord-bot** → **Environment** and set:
+   - `DISCORD_TOKEN` – your Discord bot token
+   - `DISCORD_CLIENT_ID` – your Discord application client ID
+   - `API_BASE_URL` – your backend API base URL, e.g. `https://igdb-voting-backend.onrender.com/api`
+   - `ADMIN_SECRET` – (optional) must match backend’s `ADMIN_SECRET` for admin slash commands
+3. Deploy; the worker will build (`npm install && npm run build`) and run `npm start`.
+
+**Note:** Background workers on Render do not support the free plan; use at least **Starter**. The bot only redeploys when files under `discord-bot/` change (build filter in `render.yaml`).
+
+#### Option B: Other platforms
+
 1. Build the TypeScript code:
    ```bash
    cd discord-bot
    npm run build
    ```
-
-2. Set environment variables on your hosting platform
-
+2. Set environment variables (see `discord-bot/.env.example`): `DISCORD_TOKEN`, `DISCORD_CLIENT_ID`, `API_BASE_URL`, and optionally `ADMIN_SECRET`.
 3. Start the bot:
    ```bash
    npm start
    ```
 
-**Recommended Platforms**: Railway, Render, Heroku, DigitalOcean (for 24/7 hosting)
+**Recommended Platforms**: Render (worker), Railway, Fly.io, Heroku, DigitalOcean (for 24/7 hosting)
 
 ## 🛠️ Development
 
