@@ -227,23 +227,26 @@ Bot will connect to Discord
 
 All vote/top/stats commands are scoped to the server where you run them.
 
-- `/vote game:<name> category:<category>` - Nominate a game for this server's ladder
-  - Example: `/vote game:Minecraft category:Adventure`
+- `/nominate game:<name> category:<category>` - Nominate a game for this server's ladder
+  - Example: `/nominate game:Minecraft category:Adventure`
+- `/vote matchup_id:<id> choice:<A|B>` - Vote in a bracket matchup (use `/ladder show` to see matchup IDs)
 - `/search query:<name>` - Search for games
 - `/top [limit:<number>]` - View top nominated games for this server (default: 10, max: 100)
 - `/stats` - View voting statistics for this server
 - `/games category:<id> [limit:<number>]` - Get games by IGDB category ID
 - `/ladder show` - Show current ladder (nominations list or bracket matchups with vote buttons)
-- `/ladder link` - Get the web app URL for this server's voting page (share with users)
+- `/ladder link` - Get the web app URL for this server's voting page (requires `FRONTEND_URL` in bot env)
 - `/ladder start [size:8|16|32]` - Start a new ladder (admin)
 - `/ladder close-nominations` - Close nominations and seed bracket (admin)
 - `/ladder close-round` - Close current bracket round and advance (admin)
 
+For Discord permissions and invite setup, see [discord-bot/DISCORD-PERMISSIONS.md](discord-bot/DISCORD-PERMISSIONS.md).
+
 ### Initial testing flow
 
-1. Invite the bot to your Discord server (OAuth2 URL Generator).
+1. Invite the bot to your Discord server (OAuth2 URL Generator with `bot` + `applications.commands` scopes).
 2. In Discord, run `/ladder start` (admin) to create a ladder.
-3. Have users run `/vote game:<name> category:<category>` to nominate games.
+3. Have users run `/nominate game:<name> category:<category>` to nominate games.
 4. Run `/ladder link` to get the web app URL for this server; share it with users.
 5. Open the web app link in a browser and verify Vote, Top Games, Stats, and Ladder tabs.
 6. When ready, admin runs `/ladder close-nominations` to seed the bracket, then `/ladder close-round` to advance rounds until a champion is chosen.
@@ -488,7 +491,7 @@ npm run test:frontend
 ## ⚠️ Important Notes
 
 - **Persistence**: Votes and ladders are stored in SQLite (default: `backend/data/voting.db`). Set `DATABASE_PATH` in the backend to override. Data survives restarts. If `better-sqlite3` native bindings are missing (e.g. Windows without build tools), the backend falls back to an in-memory mock DB automatically, or set `USE_MOCK_DB=1` to force it; no data is persisted in mock mode.
-- **Ladder flow**: Per Discord server: (1) **Nominations** – users nominate games with `/vote` or the web app; (2) admin runs **close-nominations** to seed a bracket from the top N; (3) **Bracket** – users vote on head-to-head matchups (Discord buttons or web Ladder tab); (4) admin runs **close-round** until one champion remains.
+   - **Ladder flow**: Per Discord server: (1) **Nominations** – users nominate games with `/nominate` or the web app; (2) admin runs **close-nominations** to seed a bracket from the top N; (3) **Bracket** – users vote on head-to-head matchups (Discord buttons, `/vote` command, or web Ladder tab); (4) admin runs **close-round** until one champion remains.
 - **User voting**: One nomination per user per game per guild; one vote per user per matchup in the bracket.
 - **Multi-guild support**: One deployment serves multiple Discord servers. Guild context comes from the URL (`/app?guildId=...`), the landing page server picker, or `/ladder link` in Discord. Optionally set `VITE_APP_GUILD_ID` for a default server’s ladder.
 - **Environment Variables**: Never commit `.env` files to version control. Always use `.env.example` files as templates.

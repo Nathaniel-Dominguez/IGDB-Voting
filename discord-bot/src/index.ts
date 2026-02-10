@@ -43,19 +43,38 @@ function requireGuild(interaction: { guildId: string | null }): string | null {
 // Register slash commands
 const commands = [
   new SlashCommandBuilder()
-    .setName('vote')
+    .setName('nominate')
     .setDescription('Nominate a game for this server ladder')
     .addStringOption(option =>
       option
         .setName('game')
-        .setDescription('Name of the game to vote for')
+        .setDescription('Name of the game to nominate')
         .setRequired(true)
     )
     .addStringOption(option =>
       option
         .setName('category')
-        .setDescription('Category for this vote (e.g., Action, RPG, Strategy)')
+        .setDescription('Category for this nomination (e.g., Action, RPG, Strategy)')
         .setRequired(true)
+    ),
+  new SlashCommandBuilder()
+    .setName('vote')
+    .setDescription('Vote in a bracket matchup (use /ladder show to see matchups)')
+    .addIntegerOption(option =>
+      option
+        .setName('matchup_id')
+        .setDescription('Matchup ID from /ladder show')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
+      option
+        .setName('choice')
+        .setDescription('Which game to vote for')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Game A', value: 'A' },
+          { name: 'Game B', value: 'B' }
+        )
     ),
   new SlashCommandBuilder()
     .setName('search')
@@ -209,7 +228,7 @@ client.on('interactionCreate', async interaction => {
   }
 
   try {
-    if (commandName === 'vote') {
+    if (commandName === 'nominate') {
       const gameName = interaction.options.getString('game', true);
       const category = interaction.options.getString('category', true);
       const userId = interaction.user.id;
@@ -252,7 +271,50 @@ client.on('interactionCreate', async interaction => {
         }
         await interaction.editReply({ embeds: [embed] });
       } catch (error: any) {
-        console.error('Error processing vote:', error);
+        console.error('Error processing nominate:', error);
+        await interaction.editReply({
+          content: `❌ ${error.response?.data?.error || error.message}`,
+        });
+      }
+    }
+
+    if (commandName === 'vote') {
+      const matchupId = interaction.options.getInteger('matchup_id', true);
+      const choice = interaction.options.getString('choice', true);
+      const userId = interaction.user.id;
+
+      await interaction.deferReply({ ephemeral: true });
+
+      try {
+        const { data: ladder } = await axios.get(`${API_BASE_URL}/guilds/${guildId}/ladder`);
+        if (ladder.phase !== 'bracket' || !ladder.matchups?.length) {
+          await interaction.editReply({
+            content: '❌ No active bracket. Use /ladder show to see the current state.',
+          });
+          return;
+        }
+        const matchup = ladder.matchups.find((m: any) => m.id === matchupId);
+        if (!matchup || matchup.winnerGameId != null) {
+          await interaction.editReply({
+            content: `❌ Matchup ${matchupId} not found or already decided. Use /ladder show for current matchups.`,
+          });
+          return;
+        }
+        const votedGameId = choice === 'A' ? matchup.gameAId : matchup.gameBId;
+        if (votedGameId == null) {
+          await interaction.editReply({ content: '❌ Invalid choice for this matchup.' });
+          return;
+        }
+        await axios.post(`${API_BASE_URL}/guilds/${guildId}/ladder/matchup-vote`, {
+          matchupId,
+          votedGameId,
+          userId,
+          platform: 'discord',
+        });
+        await interaction.editReply({
+          content: `✅ Voted for **${choice === 'A' ? matchup.gameAName : matchup.gameBName}**!`,
+        });
+      } catch (error: any) {
         await interaction.editReply({
           content: `❌ ${error.response?.data?.error || error.message}`,
         });
@@ -277,7 +339,7 @@ client.on('interactionCreate', async interaction => {
             games.slice(0, 10).map((g, i) => `${i + 1}. **${g.name}** (ID: ${g.id})`).join('\n')
           )
           .setColor(0x00ae86)
-          .setFooter({ text: 'Use /vote in a server to nominate' });
+          .setFooter({ text: 'Use /nominate in a server to nominate' });
         await interaction.editReply({ embeds: [embed] });
       } catch (error: any) {
         await interaction.editReply({
@@ -296,7 +358,7 @@ client.on('interactionCreate', async interaction => {
         const topGames = response.data.games;
         if (topGames.length === 0) {
           await interaction.editReply({
-            content: '📊 No nominations yet. Use /vote to nominate a game!',
+            content: '📊 No nominations yet. Use /nominate to nominate a game!',
           });
           return;
         }
@@ -382,7 +444,7 @@ client.on('interactionCreate', async interaction => {
               .join('\n')
           )
           .setColor(0x00ae86)
-          .setFooter({ text: 'Use /vote in a server to nominate' });
+          .setFooter({ text: 'Use /nominate in a server to nominate' });
         await interaction.editReply({ embeds: [embed] });
       } catch (error: any) {
         await interaction.editReply({
@@ -403,9 +465,16 @@ client.on('interactionCreate', async interaction => {
           await interaction.editReply({ content: '❌ This command must be used in a server (not DMs).' });
           return;
         }
-        const appUrl = `${FRONTEND_URL.replace(/\/$/, '')}/app?guildId=${guildId}&tab=vote`;
+        const baseUrl = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
+        if (!baseUrl) {
+          await interaction.editReply({
+            content: '❌ Set FRONTEND_URL in your bot environment (e.g. `https://your-username.github.io/IGDB-Voting`). For local dev use `http://localhost:3000`.',
+          });
+          return;
+        }
+        const appUrl = `${baseUrl}/app?guildId=${guildId}&tab=ladder`;
         await interaction.editReply({
-          content: `Vote here: ${appUrl}`,
+          content: `🗳️ Vote here: ${appUrl}`,
         });
         return;
       }
@@ -433,7 +502,7 @@ client.on('interactionCreate', async interaction => {
           );
           const restrictions = data.constraintsDisplay ? ` Restrictions: ${data.constraintsDisplay}.` : '';
           await interaction.editReply({
-            content: `✅ Ladder started (bracket size: ${data.bracketSize}).${restrictions} Nominate games with /vote!`,
+            content: `✅ Ladder started (bracket size: ${data.bracketSize}).${restrictions} Nominate games with /nominate!`,
           });
         } catch (e: any) {
           await interaction.editReply({
@@ -503,7 +572,7 @@ client.on('interactionCreate', async interaction => {
               .setDescription(
                 top.length > 0
                   ? top.map((g: any, i: number) => `${i + 1}. **${g.gameName}** (${g.votes} votes)`).join('\n')
-                  : 'No nominations yet. Use /vote to nominate!'
+                  : 'No nominations yet. Use /nominate to nominate!'
               )
               .setColor(0x00ae86)
               .setTimestamp();
