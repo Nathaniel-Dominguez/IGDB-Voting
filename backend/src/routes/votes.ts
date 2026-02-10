@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { Vote } from '../models/Vote';
 import * as votingService from '../services/voting';
 import igdbService from '../services/igdb';
+import { getDb } from '../db';
 
 const router = Router();
 const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
@@ -151,7 +152,6 @@ router.delete('/clear', (req: Request, res: Response) => {
     if (!guildId) {
       return res.status(400).json({ error: 'Missing required query or body: guildId' });
     }
-    const { getDb } = require('../db');
     const database = getDb();
     database.prepare('DELETE FROM nomination_votes WHERE guild_id = ?').run(guildId);
     res.json({ success: true, message: 'Votes cleared for guild' });

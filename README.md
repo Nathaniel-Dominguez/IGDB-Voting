@@ -65,9 +65,12 @@ The React app and Discord bot call the Express backend. The backend exposes `/ap
 IGDB-Voting/
 ├── backend/          # Express.js API server (TypeScript)
 │   ├── src/
+│   │   ├── app.ts    # Express app (exported for tests)
 │   │   ├── routes/   # API routes
-│   │   ├── services/ # Business logic (IGDB, Voting)
-│   │   └── models/   # Data models
+│   │   ├── services/ # Business logic (IGDB, Voting, Ladder)
+│   │   ├── models/   # Data models
+│   │   └── db/       # SQLite + mock fallback
+│   ├── vitest.config.ts
 │   └── package.json
 ├── frontend/         # React web application (TypeScript)
 │   ├── src/
@@ -76,6 +79,8 @@ IGDB-Voting/
 ├── discord-bot/      # Discord bot (TypeScript)
 │   ├── src/
 │   └── package.json
+├── scripts/
+│   └── smoke-test.js # Optional HTTP smoke checks
 ├── .nvmrc           # Node version specification
 ├── .gitignore       # Git ignore rules
 └── README.md
@@ -375,15 +380,20 @@ If `better-sqlite3` native bindings fail to build (e.g. on Windows without build
 - `npm run build:backend` - Build backend for production
 - `npm run build:frontend` - Build frontend for production
 - `npm run build:bot` - Build Discord bot for production
+- `npm run test` - Run backend test suite
+- `npm run test:frontend` - Run frontend test suite
+- `npm run smoke` - Run HTTP smoke checks (backend must be running)
 
 #### Backend
 - `npm run dev` - Start development server with hot reload
 - `npm run build` - Build TypeScript to JavaScript
 - `npm start` - Start production server
+- `npm run test` - Run Vitest tests (unit + integration)
 
 #### Frontend
 - `npm start` - Start development server
 - `npm run build` - Build for production
+- `npm run test` - Run Vitest + React Testing Library tests
 
 #### Discord Bot
 - `npm run dev` - Start bot in development mode with hot reload
@@ -392,10 +402,30 @@ If `better-sqlite3` native bindings fail to build (e.g. on Windows without build
 
 ### Tech Stack
 
-- **Backend**: Express.js, TypeScript, Axios
-- **Frontend**: React, TypeScript, Axios
+- **Backend**: Express.js, TypeScript, Axios, SQLite (better-sqlite3)
+- **Frontend**: React, TypeScript, Axios, Vite
 - **Discord Bot**: Discord.js, TypeScript, Axios
+- **Testing**: Vitest, supertest, React Testing Library
 - **API**: IGDB API (via Twitch OAuth)
+
+### Testing
+
+The project uses **Vitest** for unit and integration tests. Tests run against a mock DB (no SQLite bindings required).
+
+- **Backend tests** (`backend/`): voting service, ladder service, votes routes (26 tests)
+- **Frontend tests** (`frontend/`): App component (tab switching, guildId from URL) (8 tests)
+
+```bash
+# Run backend tests
+cd backend && npm run test
+
+# Run frontend tests
+cd frontend && npm run test
+
+# Or from root
+npm run test
+npm run test:frontend
+```
 
 ## ⚠️ Important Notes
 
