@@ -1,12 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import gamesRouter from './routes/games';
 import votesRouter from './routes/votes';
 import ladderRouter from './routes/ladder';
 import igdbRouter from './routes/igdb';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
